@@ -5,6 +5,8 @@ set(SOURCE_FILES
         src/bmp_lib/bmp.h
         src/bmp_lib/bmp.cpp
         src/bmp_lib/bmp_math.cpp
+        src/bmp_lib/filter.h
+        src/bmp_lib/filter.cpp
         src/main.cpp
         src/avi_lib/avi_rw.cpp
         src/avi_lib/avi_rw.h
@@ -14,5 +16,6 @@ set(SOURCE_FILES
         src/motion_compensation/motion_compensation.cpp
         src/motion_compensation/motion_compensation.h
         src/bmp_lib/bmp_headers.hpp
-        src/avi_lib/avi_headers.hpp)
+        src/avi_lib/avi_headers.hpp
+        src/bmp_lib/bmp_examples.cpp)
 add_executable(avi-maker ${SOURCE_FILES})

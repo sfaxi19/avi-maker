@@ -3,9 +3,9 @@
 //
 
 #include <vector>
+#include "bmp.h"
 #include "filter.h"
 #include "algorithm"
-#include "bmp.h"
 
 
 Filter::~Filter() {

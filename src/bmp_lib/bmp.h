@@ -54,6 +54,9 @@ void saveBMPFile(BITMAPFILEHEADER, BITMAPINFOHEADER, TRIPLERGB **, const char *f
 void save_component_to_files(TRIPLEBYTES **mrx, BITMAPFILEHEADER bmFile, BITMAPINFOHEADER bmInfo, int component,
                              const char *filename);
 
+void save_components_to_files(TRIPLERGB **mrx, BITMAPFILEHEADER bmFile, BITMAPINFOHEADER bmInfo, int format,
+                              const char *filepath1, const char *filepath2, const char *filepath3);
+
 void saveXYCSVFile(double **mrx, const int height, const int width, std::string format);
 
 void saveHistCSVFile(int *mrx, const int start, const int width, const char *filename);
@@ -99,8 +102,6 @@ TRIPLEYCbCr **RGB2YCbCr(TRIPLERGB **mrxRGB, size_t h, size_t w);
 
 TRIPLERGB **Y2RGB(TRIPLEYCbCr **mrx, size_t h, size_t w);
 
-void save_components_to_files(TRIPLERGB **mrx, BITMAPFILEHEADER bmFile, BITMAPINFOHEADER bmInfo, int format);
-
 TRIPLERGB **decimationAndRecovering(TRIPLERGB **mrx, BITMAPFILEHEADER bmFile, BITMAPINFOHEADER bmInfo,
                                     int decimation, int k, const char *filenameDecimate, const char *filenameRecover);
 
@@ -111,6 +112,5 @@ int *getHistFreqFromTriple(TRIPLERGB **mrx, int h, int w, int component, const c
 
 double getEntropy(const int freq[], int N);
 
-void example(const char *filename);
 
 #endif //BMP_H

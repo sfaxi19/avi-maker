@@ -6,7 +6,8 @@
 #define BMP_FILTER_H
 #define SYN (-1)
 
-#include "bmp.h"
+#include "bmp_headers.hpp"
+//#include "bmp.h"
 
 class Filter {
 public:

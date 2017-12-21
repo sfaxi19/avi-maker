@@ -6,15 +6,6 @@
  */
 #include "bmp.h"
 
-const char *FILE_RED = "images/image_red.bmp";
-const char *FILE_GREEN = "images/image_green.bmp";
-const char *FILE_BLUE = "images/image_blue.bmp";
-const char *FILE_Y = "images/image_Y.bmp";
-const char *FILE_Cb = "images/image_Cb.bmp";
-const char *FILE_Cr = "images/image_Cr.bmp";
-const char *FILE_YCbCr = "images/image_YCbCr.bmp";
-const char *FILE_RGB_RECOV = "images/image_RGB_recov.bmp";
-
 void printHeader(const BITMAPFILEHEADER bmFile, const BITMAPINFOHEADER bmInfo) {
     printf("Bitmap file:\n");
     char type[2] = {(char) (bmFile.bfType & 0xff), (char) ((bmFile.bfType >> 8) & 0xff)};
@@ -385,7 +376,8 @@ void save_component_to_files(TRIPLEBYTES **mrx, BITMAPFILEHEADER bmFile, BITMAPI
     delete[] mrxComponent;
 }
 
-void save_components_to_files(TRIPLERGB **mrx, BITMAPFILEHEADER bmFile, BITMAPINFOHEADER bmInfo, int format) {
+void save_components_to_files(TRIPLERGB **mrx, BITMAPFILEHEADER bmFile, BITMAPINFOHEADER bmInfo, int format,
+                              const char *filepath1, const char *filepath2, const char *filepath3) {
     int height = bmInfo.biHeight;
     int width = bmInfo.biWidth;
     TRIPLERGB **mrxA = new TRIPLERGB *[height];
@@ -414,14 +406,14 @@ void save_components_to_files(TRIPLERGB **mrx, BITMAPFILEHEADER bmFile, BITMAPIN
     }
     switch (format) {
         case FORMAT_RGB:
-            saveBMPFile(bmFile, bmInfo, mrxA, FILE_RED);
-            saveBMPFile(bmFile, bmInfo, mrxB, FILE_GREEN);
-            saveBMPFile(bmFile, bmInfo, mrxC, FILE_BLUE);
+            saveBMPFile(bmFile, bmInfo, mrxA, filepath1);
+            saveBMPFile(bmFile, bmInfo, mrxB, filepath2);
+            saveBMPFile(bmFile, bmInfo, mrxC, filepath3);
             break;
         case FORMAT_YCBCR:
-            saveBMPFile(bmFile, bmInfo, mrxA, FILE_Y);
-            saveBMPFile(bmFile, bmInfo, mrxB, FILE_Cb);
-            saveBMPFile(bmFile, bmInfo, mrxC, FILE_Cr);
+            saveBMPFile(bmFile, bmInfo, mrxA, filepath1);
+            saveBMPFile(bmFile, bmInfo, mrxB, filepath2);
+            saveBMPFile(bmFile, bmInfo, mrxC, filepath3);
             break;
         default:
             break;
@@ -538,133 +530,5 @@ double getEntropy(const int freq[], int N) {
 uint8_t clip(int value, uint8_t min, uint8_t max) {
     //value = round(value);
     return (value > max) ? max : ((value < min) ? min : ((uint8_t) value));
-}
-
-void example(const char *filename) {
-    BITMAPFILEHEADER bmFileDef;
-    BITMAPINFOHEADER bmInfoDef;
-    std::cout << "reading file...\n";
-    system("mkdir -p images");
-    system("mkdir -p histograms");
-    //Read bmp file
-    TRIPLERGB **mrxRGB = loadBMPFile(&bmFileDef, &bmInfoDef, filename);
-    std::cout << "-------------------------------------\n";
-    printHeader(bmFileDef, bmInfoDef);
-    std::cout << "-------------------------------------\n";
-    size_t defHeight = bmInfoDef.biHeight;
-    size_t defWidth = bmInfoDef.biWidth;
-    TRIPLERGB **mrxYCbCr = (TRIPLERGB **) RGB2YCbCr(mrxRGB, defHeight, defWidth);
-
-    save_components_to_files(mrxRGB, bmFileDef, bmInfoDef, FORMAT_RGB);
-    save_components_to_files(mrxYCbCr, bmFileDef, bmInfoDef, FORMAT_YCBCR);
-
-    TRIPLERGB **mrxY = loadBMPFile(&bmFileDef, &bmInfoDef, FILE_Y);
-    TRIPLERGB **mrxCb = loadBMPFile(&bmFileDef, &bmInfoDef, FILE_Cb);
-    TRIPLERGB **mrxCr = loadBMPFile(&bmFileDef, &bmInfoDef, FILE_Cr);
-    TRIPLERGB **mrxRGBconv = YCbCr2RGB(mrxY, mrxCb, mrxCr, defHeight, defWidth);
-    saveBMPFile(bmFileDef, bmInfoDef, mrxRGBconv, FILE_RGB_RECOV);
-
-    double PSNR_RGB_RGBr_red = getPSNR((TRIPLEBYTES **) mrxRGB, (TRIPLEBYTES **) mrxRGBconv, 0, 0, defHeight, defWidth,
-                                       COMPONENT_RED);
-    double PSNR_RGB_RGBr_green = getPSNR((TRIPLEBYTES **) mrxRGB, (TRIPLEBYTES **) mrxRGBconv, 0, 0, defHeight,
-                                         defWidth, COMPONENT_GREEN);
-    double PSNR_RGB_RGBr_blue = getPSNR((TRIPLEBYTES **) mrxRGB, (TRIPLEBYTES **) mrxRGBconv, 0, 0, defHeight, defWidth,
-                                        COMPONENT_BLUE);
-    checkCorrelationProperties(mrxRGB, defHeight, defWidth, FORMAT_RGB);
-    checkCorrelationProperties(mrxYCbCr, defHeight, defWidth, FORMAT_YCBCR);
-    std::cout << "-------------------------------------\n";
-    std::cout << "PSNR(red)[RGB, RGBr] = " << PSNR_RGB_RGBr_red << "\n";
-    std::cout << "PSNR(green)[RGB, RGBr] = " << PSNR_RGB_RGBr_green << "\n";
-    std::cout << "PSNR(blue)[RGB, RGBr] = " << PSNR_RGB_RGBr_blue << "\n";
-
-
-    std::cout << "-------------------------------------\n";
-    std::cout << "\nDecimation \"mean\" x2:\n";
-    decimationAndRecovering(mrxCb, bmFileDef, bmInfoDef, DECIMATION_MEAN, 2,
-                            "images/decMeanCb2.bmp", "images/recMeanCb2.bmp");
-    decimationAndRecovering(mrxCr, bmFileDef, bmInfoDef, DECIMATION_MEAN, 2,
-                            "images/decMeanCr2.bmp", "images/recMeanCr2.bmp");
-    check_PSNR_for_recov(mrxRGB, mrxY, mrxCb, mrxCr, "images/recMeanCb2.bmp", "images/recMeanCr2.bmp",
-                         "images/recoveryMeanRGB2.bmp");
-    std::cout << "\nDecimation \"mean\" x4:\n";
-    decimationAndRecovering(mrxCb, bmFileDef, bmInfoDef, DECIMATION_MEAN, 4,
-                            "images/decMeanCb4.bmp", "images/recMeanCb4.bmp");
-    decimationAndRecovering(mrxCr, bmFileDef, bmInfoDef, DECIMATION_MEAN, 4,
-                            "images/decMeanCr4.bmp", "images/recMeanCr4.bmp");
-
-    check_PSNR_for_recov(mrxRGB, mrxY, mrxCb, mrxCr, "images/recMeanCb4.bmp", "images/recMeanCr4.bmp",
-                         "images/recoveryMeanRGB4.bmp");
-
-    std::cout << "\nDecimation \"ejection\" x2:\n";
-    decimationAndRecovering(mrxCb, bmFileDef, bmInfoDef, DECIMATION_EJECT, 2,
-                            "images/decEjectCb2.bmp", "images/recEjectCb2.bmp");
-    decimationAndRecovering(mrxCr, bmFileDef, bmInfoDef, DECIMATION_EJECT, 2,
-                            "images/decEjectCr2.bmp", "images/recEjectCr2.bmp");
-    check_PSNR_for_recov(mrxRGB, mrxY, mrxCb, mrxCr, "images/recEjectCb2.bmp", "images/recEjectCr2.bmp",
-                         "images/recoveryEjectRGB2.bmp");
-    std::cout << "\nDecimation \"ejection\" x4:\n";
-    decimationAndRecovering(mrxCb, bmFileDef, bmInfoDef, DECIMATION_EJECT, 4,
-                            "images/decEjectCb4.bmp", "images/recEjectCb4.bmp");
-    decimationAndRecovering(mrxCr, bmFileDef, bmInfoDef, DECIMATION_EJECT, 4,
-                            "images/decEjectCr4.bmp", "images/recEjectCr4.bmp");
-
-    check_PSNR_for_recov(mrxRGB, mrxY, mrxCb, mrxCr, "images/recEjectCb4.bmp", "images/recEjectCr4.bmp",
-                         "images/recoveryEjectRGB4.bmp");
-    std::cout << "-------------------------------------\n";
-
-    int *freq;
-    freq = getHistFreqFromTriple(mrxRGB, defHeight, defWidth, COMPONENT_RED, "histograms/Part1/histRed/",
-                                 "histRed.csv");
-    double entropyRed = getEntropy(freq, defHeight * defWidth);
-    delete[] freq;
-    freq = getHistFreqFromTriple(mrxRGB, defHeight, defWidth, COMPONENT_GREEN, "histograms/Part1/histGreen/",
-                                 "histGreen.csv");
-    double entropyGreen = getEntropy(freq, defHeight * defWidth);
-    delete[] freq;
-    freq = getHistFreqFromTriple(mrxRGB, defHeight, defWidth, COMPONENT_BLUE, "histograms/Part1/histBlue/",
-                                 "histBlue.csv");
-    double entropyBlue = getEntropy(freq, defHeight * defWidth);
-    delete[] freq;
-    freq = getHistFreqFromTriple(mrxYCbCr, defHeight, defWidth, COMPONENT_RED, "histograms/Part1/histY/", "histY.csv");
-    double entropyY = getEntropy(freq, defHeight * defWidth);
-    delete[] freq;
-    freq = getHistFreqFromTriple(mrxYCbCr, defHeight, defWidth, COMPONENT_GREEN, "histograms/Part1/histCb/",
-                                 "histCb.csv");
-    double entropyCb = getEntropy(freq, defHeight * defWidth);
-    delete[] freq;
-    freq = getHistFreqFromTriple(mrxYCbCr, defHeight, defWidth, COMPONENT_BLUE, "histograms/Part1/histCr/",
-                                 "histCr.csv");
-    double entropyCr = getEntropy(freq, defHeight * defWidth);
-    delete[] freq;
-    std::cout << "Entropy_Red = " << entropyRed << "\n";
-    std::cout << "Entropy_Green = " << entropyGreen << "\n";
-    std::cout << "Entropy_Blue = " << entropyBlue << "\n";
-    std::cout << "Entropy_Y = " << entropyY << "\n";
-    std::cout << "Entropy_Cb = " << entropyCb << "\n";
-    std::cout << "Entropy_Cr = " << entropyCr << "\n";
-    printf("-------------------------------------\n");
-    printf("-------------------------------------\n");
-    printf("-------------------------------------\n");
-    usleep(2 * 1000 * 1000);
-    //system("csv_charts -h histograms/Part1/histRed/ & exit");
-    //system("csv_charts -h histograms/Part1/histGreen/ & exit");
-    //system("csv_charts -h histograms/Part1/histBlue/ & exit");
-    //system("csv_charts -h histograms/Part1/histY/ & exit");
-    //system("csv_charts -h histograms/Part1/histCb/ & exit");
-    //system("csv_charts -h histograms/Part1/histCr/ & exit");
-    for (int i = 0; i < defHeight; i++) {
-        delete[] mrxRGB[i];
-        delete[] mrxYCbCr[i];
-        delete[] mrxY[i];
-        delete[] mrxCb[i];
-        delete[] mrxCr[i];
-        delete[] mrxRGBconv[i];
-    }
-    delete[] mrxRGB;
-    delete[] mrxYCbCr;
-    delete[] mrxY;
-    delete[] mrxCb;
-    delete[] mrxCr;
-    delete[] mrxRGBconv;
 }
 
