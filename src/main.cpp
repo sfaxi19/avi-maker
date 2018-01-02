@@ -2,7 +2,6 @@
 #include "AVIMaker/AVIMaker.h"
 #include "motion_compensation/motion_compensation.h"
 #include "bmp_lib/bmp.h"
-#include "h264/h264.hpp"
 
 void createFrames(VideoStream *videoStream, size_t x, size_t y, uint32_t h, uint32_t w) {
     BITMAPINFOHEADER bmInfo = videoStream->bmInfo();
@@ -175,20 +174,10 @@ void test1(const char *filepath1, const char *filepath2, const char *filepath3) 
     avi_maker3.saveAVIFile("reverse.avi");
 }
 
-void h264_test(const char *filepath) {
-    AVIMaker aviMaker(filepath);
-    uint8_t *bytes = 0;
-    size_t len = 0;
-    //print_bitmap_info(aviMaker.video()->bmInfo());
-    printf("w_blocks_count: %f\nh_blocks_count: %f\n", (float) aviMaker.video()->width() / 4,
-           (float) aviMaker.video()->height() / 4);
-    avi_to_h264(&bytes, len, aviMaker);
-}
 
 int main() {
     //test1("resources/lr1_1.AVI", "resources/lr1_2.AVI");
-    //createDifferenceVideo("../resources/lr1_2.AVI");
-    h264_test("../resources/lr1_1.AVI");
+    createDifferenceVideo("../resources/lr1_2.AVI");
     std::cout << "finish\n" << std::endl;
     return 0;
 }
