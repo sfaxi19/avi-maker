@@ -215,7 +215,7 @@ TRIPLERGB **recovery(BITMAPFILEHEADER bmFile,
     bmInfo.biWidth = bmInfo.biWidth * k;
     bmInfo.biHeight = bmInfo.biHeight * k;
     bmInfo.biSizeImage = bmInfo.biWidth * bmInfo.biHeight * 3;
-    //cout << "Recovery... New size = " << bmInfo.biSizeImage << "\n";
+    //cout << "Recovery... New size = " << m_bmInfo.biSizeImage << "\n";
     TRIPLERGB **recMrx = new TRIPLERGB *[bmInfo.biHeight];
     for (int i = 0; i < bmInfo.biHeight; i++) {
         recMrx[i] = new TRIPLERGB[bmInfo.biWidth];
@@ -248,7 +248,7 @@ TRIPLERGB **decimationMean(BITMAPFILEHEADER bmFile,
     bmInfo.biWidth = w = bmInfo.biWidth / k;
     bmInfo.biHeight = h = bmInfo.biHeight / k;
     bmInfo.biSizeImage = bmInfo.biWidth * bmInfo.biHeight * 3;
-    //cout << "Deimation... New size = " << bmInfo.biSizeImage << "\n";
+    //cout << "Deimation... New size = " << m_bmInfo.biSizeImage << "\n";
     TRIPLERGB **decMrx = new TRIPLERGB *[h];
     for (size_t i = 0; i < h; i++) {
         decMrx[i] = new TRIPLERGB[w];
@@ -281,7 +281,7 @@ TRIPLERGB **decimationEjection(BITMAPFILEHEADER bmFile,
     bmInfo.biWidth = originW / k;
     bmInfo.biHeight = originH / k;
     bmInfo.biSizeImage = bmInfo.biWidth * bmInfo.biHeight * 3;
-    //cout << "Decimation... New size = " << bmInfo.biSizeImage << "\n";
+    //cout << "Decimation... New size = " << m_bmInfo.biSizeImage << "\n";
     TRIPLERGB **decMrx = new TRIPLERGB *[bmInfo.biHeight];
     int idH = 0;
     for (size_t i = 0; i < originH; i++) {

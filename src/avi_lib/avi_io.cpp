@@ -4,7 +4,7 @@
 
 #include "avi_rw.h"
 
-void print_bitmap_info(BITMAPINFOHEADER &bmInfo) {
+void print_bitmap_info(BITMAPINFOHEADER bmInfo) {
     printf("\nBitmap info:\n");
     printf("Size: \t%d\n", bmInfo.biSize);
     printf("Width: \t%d\n", bmInfo.biWidth);

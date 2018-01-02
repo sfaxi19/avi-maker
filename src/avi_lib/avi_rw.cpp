@@ -24,8 +24,8 @@ void saveBMPAVIFile(const BITMAPFILEHEADER &bmFile, const BITMAPINFOHEADER &bmIn
 }
 
 TRIPLERGB **loadBMPAVIFile(BITMAPINFOHEADER &bmInfo, FILE *file) {
-    //printf("bmFile: %d\nbmInfo: %d\n", bmInfo.biHeight, bmInfo.biWidth);
-    //size_t dummy_count = (4 - (bmInfo.biWidth * 3) % 4) % 4;
+    //printf("bmFile: %d\nm_bmInfo: %d\n", m_bmInfo.biHeight, m_bmInfo.biWidth);
+    //size_t dummy_count = (4 - (m_bmInfo.biWidth * 3) % 4) % 4;
     //u_char *dummy = new u_char[dummy_count];
     TRIPLERGB **mrx = new TRIPLERGB *[bmInfo.biHeight];
     for (size_t i = 0; i < bmInfo.biHeight; i++) {
@@ -115,9 +115,7 @@ void read_strl(FILE *file, size_t stream_id, AVIMaker *aviMaker) {
                 bytes -= chunk.ckSize;
                 type = streamHeader->fccType;
                 if (type == VIDS) {
-                    VideoStream *videoStream = new VideoStream;
-                    videoStream->streamID = stream_id;
-                    videoStream->streamHeader = *streamHeader;
+                    VideoStream *videoStream = new VideoStream(stream_id, *streamHeader);
                     aviMaker->videoStreams.push_back(videoStream);
                     //print_stream_header(*this->videoStreams.back()->streamHeader);
                 } else if (type == AUDS) {
@@ -137,8 +135,8 @@ void read_strl(FILE *file, size_t stream_id, AVIMaker *aviMaker) {
                 if (type == VIDS) {
                     BITMAPINFOHEADER bmInfo;
                     fread(&bmInfo, BITMAP_INFO_SIZE, 1, file);
-                    aviMaker->videoStreams.back()->bmInfo = bmInfo;
-                    //print_bitmap_info(this->bmInfo);
+                    aviMaker->videoStreams.back()->setBITMAPINFOHEADER(bmInfo);
+                    //print_bitmap_info(this->m_bmInfo);
                 } else if (type == AUDS) {
                     WAVEFORMAT *wave = new WAVEFORMAT;
                     fread(wave, sizeof(WAVEFORMAT), 1, file);
@@ -230,7 +228,7 @@ bool read_data(FILE *file, uint32_t node, uint32_t &bytes, AVIMaker *aviMaker) {
             if (vStream == nullptr) return false;
             TRIPLERGB **rgb = (TRIPLERGB **) malloc(chunk.ckSize);
             //TRACE printf("point: 0x%x\n", rgb);
-            BITMAPINFOHEADER bmInfo = aviMaker->videoStreams[chunk_data_id]->bmInfo;
+            BITMAPINFOHEADER bmInfo = aviMaker->videoStreams[chunk_data_id]->bmInfo();
             for (size_t i = 0; i < bmInfo.biHeight; i++) {
                 rgb[i] = new TRIPLERGB[bmInfo.biWidth];
                 fread(&rgb[i][0], (sizeof(TRIPLERGB) * bmInfo.biWidth), 1, file);
@@ -333,12 +331,14 @@ uint32_t saveVideoSTRL(FILE *file, VideoStream *videoStream) {
     tmp = sizeof(StreamHeader);
     fwrite(&tmp, 4, 1, file);
     //TRACE print_stream_header(videoStream->streamHeader);
-    fwrite(&videoStream->streamHeader, sizeof(StreamHeader), 1, file);
+    StreamHeader streamHeader = videoStream->streamHeader();
+    fwrite(&streamHeader, sizeof(StreamHeader), 1, file);
 
     fwrite(&STRF, sizeof(STRF), 1, file);
     tmp = BITMAP_INFO_SIZE;
     fwrite(&tmp, 4, 1, file);
-    fwrite(&videoStream->bmInfo, tmp, 1, file);
+    BITMAPINFOHEADER bmInfo = videoStream->bmInfo();
+    fwrite(&bmInfo, tmp, 1, file);
     fgetpos(file, &cur_pos);
     __off_t sizeSTRL = cur_pos.__pos - (pSTRLsize.__pos + 4);
     fsetpos(file, &pSTRLsize);
@@ -347,7 +347,7 @@ uint32_t saveVideoSTRL(FILE *file, VideoStream *videoStream) {
     return 0;
 }
 
-uint32_t saveVideoREC(FILE *file, TRIPLERGB **rgb, BITMAPINFOHEADER *bmInfo) {
+uint32_t saveVideoREC(FILE *file, TRIPLERGB **rgb, const BITMAPINFOHEADER bmInfo) {
     fpos_t pRECsize;
     fpos_t cur_pos;
     uint32_t tmp = 0;
@@ -357,10 +357,10 @@ uint32_t saveVideoREC(FILE *file, TRIPLERGB **rgb, BITMAPINFOHEADER *bmInfo) {
     fwrite(&REC__TYPE, sizeof(REC__TYPE), 1, file);
 
     fwrite(&DB00, sizeof(DB00), 1, file);
-    tmp = bmInfo->biSizeImage;
+    tmp = bmInfo.biSizeImage;
     fwrite(&tmp, 4, 1, file);
-    for (uint i = 0; i < bmInfo->biHeight; i++) {
-        fwrite(&rgb[i][0], sizeof(TRIPLERGB) * bmInfo->biWidth, 1, file);
+    for (uint i = 0; i < bmInfo.biHeight; i++) {
+        fwrite(&rgb[i][0], sizeof(TRIPLERGB) * bmInfo.biWidth, 1, file);
     }
     fgetpos(file, &cur_pos);
     __off_t sizeREC = cur_pos.__pos - (pRECsize.__pos + 4);
@@ -378,9 +378,9 @@ uint32_t saveMOVI(FILE *file, AVIMaker *aviMaker) {
     fwrite(&SIZE, sizeof(SIZE), 1, file);
     fwrite(&MOVI_TYPE, sizeof(MOVI_TYPE), 1, file);
 
-    std::vector<TRIPLERGB **>::iterator it = aviMaker->videoStreams[0]->frames.begin();
+    auto it = aviMaker->videoStreams[0]->frames.begin();
     for (; it != aviMaker->videoStreams[0]->frames.end(); it++) {
-        saveVideoREC(file, *it, &aviMaker->videoStreams[0]->bmInfo);
+        saveVideoREC(file, *it, aviMaker->videoStreams[0]->bmInfo());
     }
     fgetpos(file, &cur_pos);
     __off_t sizeMOVI = cur_pos.__pos - (pMOVIsize.__pos + 4);

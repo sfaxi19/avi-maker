@@ -25,7 +25,7 @@ public:
 
     AVIMaker(const char *filepath) {
         int res = this->readAVIFile(filepath);
-        if(res != 0) {
+        if (res != 0) {
             perror(filepath);
             exit(-2);
         }
@@ -46,6 +46,8 @@ public:
     int saveAVIFile(const char *filepath);
 
     void saveVideoStreamToBMP(const char *filepath);
+
+    void saveFrameToBMP(const char *filename, int frameID);
 
     void reverseVideoStream(size_t stream_id);
 

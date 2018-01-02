@@ -106,7 +106,7 @@ void AVIMaker::saveVideoStreamToBMP(const char *filepath) {
     system("mkdir -p cm_files");
     BITMAPFILEHEADER bmFile;
     bmFile.bfType = (((uint16_t) 'M') << 8) | ((uint16_t) 'B');
-    bmFile.bfSize = 12;//bmInfo.biSizeImage;// + BITMAP_INFO_SIZE;// + BITMAP_FILE_SIZE;
+    bmFile.bfSize = 12;//m_bmInfo.biSizeImage;// + BITMAP_INFO_SIZE;// + BITMAP_FILE_SIZE;
     bmFile.bfReserved1 = 0;
     bmFile.bfReserved2 = 54;
     bmFile.bfOffBits = 0;
@@ -116,11 +116,16 @@ void AVIMaker::saveVideoStreamToBMP(const char *filepath) {
     int id = 0;
     std::vector<TRIPLERGB **>::iterator it = this->videoStreams[0]->frames.begin();
     for (; it != this->videoStreams[0]->frames.end(); it++) {
-        saveBMPAVIFile(bmFile, this->videoStreams[0]->bmInfo, *it, (filename + std::to_string(id)).c_str());
+        saveBMPAVIFile(bmFile, this->videoStreams[0]->bmInfo(), *it, (filename + std::to_string(id)).c_str());
         id++;
     }
 }
 
+void AVIMaker::saveFrameToBMP(const char *filename, int frameID) {
+    if (this->videoStreams[0]->frames.size() < frameID) return;
+    BITMAPFILEHEADER bmFile = this->videoStreams[0]->bmFile();
+    saveBMPAVIFile(bmFile, this->videoStreams[0]->bmInfo(), this->videoStreams[0]->frames[frameID], filename);
+}
 
 AVIMaker::AVIMaker(const AVIHeader aviHeader, VideoStream *videoStream) : aviHeader(aviHeader) {
     this->videoStreams.push_back(videoStream);
@@ -128,7 +133,7 @@ AVIMaker::AVIMaker(const AVIHeader aviHeader, VideoStream *videoStream) : aviHea
 
 AVIMaker::~AVIMaker() {
     for (size_t video_id = 0; video_id < videoStreams.size(); video_id++) {
-        int height = videoStreams[video_id]->bmInfo.biHeight;
+        int height = videoStreams[video_id]->bmInfo().biHeight;
         for (size_t frame_id = 0; frame_id < videoStreams[video_id]->frames.size(); frame_id++) {
             TRIPLERGB **tmp = videoStreams[video_id]->frames[frame_id];
             for (int i = 0; i < height; i++) {
@@ -161,10 +166,10 @@ void AVIMaker::reverseVideoStream(size_t stream_id) {
 void AVIMaker::addFrames(size_t stream_id, std::vector<TRIPLERGB **> add_frame) {
     VideoStream *videoStream = this->videoStreams[stream_id];
     for (size_t id = 0; id < add_frame.size(); id++) {
-        TRIPLERGB **rgb = new TRIPLERGB *[videoStream->bmInfo.biHeight];
-        for (int i = 0; i < videoStream->bmInfo.biHeight; i++) {
-            rgb[i] = new TRIPLERGB[videoStream->bmInfo.biWidth];
-            for (int j = 0; j < videoStream->bmInfo.biWidth; j++) {
+        TRIPLERGB **rgb = new TRIPLERGB *[videoStream->bmInfo().biHeight];
+        for (int i = 0; i < videoStream->bmInfo().biHeight; i++) {
+            rgb[i] = new TRIPLERGB[videoStream->bmInfo().biWidth];
+            for (int j = 0; j < videoStream->bmInfo().biWidth; j++) {
                 rgb[i][j].red = add_frame[id][i][j].red;
                 rgb[i][j].green = add_frame[id][i][j].green;
                 rgb[i][j].blue = add_frame[id][i][j].blue;
@@ -194,7 +199,7 @@ void AVIMaker::addCopyFrame(size_t stream_id, TRIPLERGB **frame) {
 
 VideoStream *AVIMaker::getVideoStreamByID(uint32_t stream_id) {
     for (int i = 0; i < this->videoStreams.size(); i++) {
-        if (this->videoStreams[i]->streamID == stream_id) return this->videoStreams[i];
+        if (this->videoStreams[i]->getStreamID() == stream_id) return this->videoStreams[i];
     }
     TRACE printf("getVideoStreamByID failed. id = %d", stream_id);
     return nullptr;

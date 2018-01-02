@@ -18,18 +18,44 @@ const uint32_t LIST_TYPE_SIZE = 4;
 const uint32_t SIZE = 0x00000000;
 
 
-struct VideoStream {
-    size_t streamID{0};
-    StreamHeader streamHeader;
-    BITMAPINFOHEADER bmInfo;
+class VideoStream {
+private:
+    size_t m_streamID{0};
+    StreamHeader m_streamHeader;
+    BITMAPINFOHEADER m_bmInfo;
+public:
+
     std::vector<TRIPLERGB **> frames;
 
     // for support prev. version
     VideoStream() {};
 
-    VideoStream(const BITMAPINFOHEADER &info, const StreamHeader &sHeader) {
-        bmInfo = info;
-        streamHeader = sHeader;
+    VideoStream(const BITMAPINFOHEADER &bmInfo, const StreamHeader &streamHeader) {
+        m_bmInfo = bmInfo;
+        m_streamHeader = streamHeader;
+    }
+
+    VideoStream(size_t m_streamID, const StreamHeader &m_streamHeader) : m_streamID(m_streamID),
+                                                                         m_streamHeader(m_streamHeader) {}
+
+    void setBITMAPINFOHEADER(const BITMAPINFOHEADER &bmInfo) {
+        m_bmInfo = bmInfo;
+    }
+
+    BITMAPINFOHEADER bmInfo() { return m_bmInfo; }
+
+    StreamHeader streamHeader() { return m_streamHeader; }
+
+    size_t getStreamID() { return m_streamID; }
+
+    BITMAPFILEHEADER bmFile() {
+        BITMAPFILEHEADER bmFile{};
+        bmFile.bfType = (((uint16_t) 'M') << 8) | ((uint16_t) 'B');
+        bmFile.bfSize = 12;//m_bmInfo.biSizeImage;// + BITMAP_INFO_SIZE;// + BITMAP_FILE_SIZE;
+        bmFile.bfReserved1 = 0;
+        bmFile.bfReserved2 = 54;
+        bmFile.bfOffBits = 0;
+        return bmFile;
     }
 
     size_t getLength() {
@@ -40,9 +66,9 @@ struct VideoStream {
         return frames[id];
     }
 
-    size_t height() { return bmInfo.biHeight; };
+    size_t height() { return m_bmInfo.biHeight; };
 
-    size_t width() { return bmInfo.biWidth; };
+    size_t width() { return m_bmInfo.biWidth; };
 
 };
 
@@ -56,7 +82,7 @@ struct AudioStream {
 /*
  * implementation in avi_io.cpp file
  */
-void print_bitmap_info(BITMAPINFOHEADER &bmInfo);
+void print_bitmap_info(BITMAPINFOHEADER bmInfo);
 
 void print_list(List &list);
 
@@ -103,7 +129,7 @@ uint32_t saveHDRL(FILE *file, AVIMaker *aviMaker);
 
 uint32_t saveMOVI(FILE *file, AVIMaker *aviMaker);
 
-uint32_t saveVideoREC(FILE *file, TRIPLERGB **rgb, BITMAPINFOHEADER *bmInfo);
+uint32_t saveVideoREC(FILE *file, TRIPLERGB **rgb, BITMAPINFOHEADER bmInfo);
 
 uint32_t saveVideoSTRL(FILE *file, VideoStream *videoStream);
 
