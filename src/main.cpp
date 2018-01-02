@@ -2,10 +2,12 @@
 #include "AVIMaker/AVIMaker.h"
 #include "motion_compensation/motion_compensation.h"
 #include "bmp_lib/bmp.h"
+#include "h264/h264.hpp"
 
 void createFrames(VideoStream *videoStream, size_t x, size_t y, uint32_t h, uint32_t w) {
-    int defHeight = videoStream->bmInfo.biHeight;
-    int defWidth = videoStream->bmInfo.biWidth;
+    BITMAPINFOHEADER bmInfo = videoStream->bmInfo();
+    int defHeight = bmInfo.biHeight;
+    int defWidth = bmInfo.biWidth;
     if (h + x > defHeight) h = (defHeight - x) - 1;
     if (w + y > defWidth) w = (defWidth - y) - 1;
     for (int id_frame = 0; id_frame < videoStream->frames.size(); id_frame++) {
@@ -18,9 +20,10 @@ void createFrames(VideoStream *videoStream, size_t x, size_t y, uint32_t h, uint
             }
         }
     }
-    videoStream->bmInfo.biHeight = h;
-    videoStream->bmInfo.biWidth = w;
-    videoStream->bmInfo.biSizeImage = h * w * 3;
+    bmInfo.biHeight = h;
+    bmInfo.biWidth = w;
+    bmInfo.biSizeImage = h * w * 3;
+    videoStream->setBITMAPINFOHEADER(bmInfo);
 }
 
 double correletion(TRIPLERGB **mrx, TRIPLERGB **mrx2, int h, int w, int COMPONENT) {
@@ -43,24 +46,15 @@ void correletion_func(const char *filepath1, const char *filepath2, int componen
     for (int i = 0; i < frames - step; i += step) {
         double r = correletion(avi_maker.videoStreams[0]->frames[i],
                                avi_maker.videoStreams[0]->frames[i + step],
-                               avi_maker.videoStreams[0]->bmInfo.biHeight,
-                               avi_maker.videoStreams[0]->bmInfo.biWidth,
+                               avi_maker.videoStreams[0]->bmInfo().biHeight,
+                               avi_maker.videoStreams[0]->bmInfo().biWidth,
                                component);
         fprintf(file_graph, "%f,", r);
     }
     fclose(file_graph);
 }
 
-void mark_range(TRIPLERGB **frame, int x, int y, int h, int w) {
-    for (int i = y; i < y + h; i++)
-        frame[i][x].red = 255;
-    for (int i = y; i < y + h; i++)
-        frame[i][x + w - 1].red = 255;
-    for (int i = x; i < x + w; i++)
-        frame[y][i].red = 255;
-    for (int i = x; i < x + w; i++)
-        frame[y + h - 1][i].red = 255;
-}
+
 
 void subtract_block(TRIPLEYCbCr **base, TRIPLEYCbCr **target, TRIPLEYCbCr **out, mc::block block, mc::vect v) {
     for (int i = 0; i < block.height; i++) {
@@ -77,7 +71,7 @@ void createDifferenceVideo(const char *filepath) {
     size_t defHeight = in_video->height();
     size_t defWidth = in_video->width();
     AVIMaker avi_out_file(avi_in_file.aviHeader,
-                          new VideoStream(in_video->bmInfo, in_video->streamHeader));
+                          new VideoStream(in_video->bmInfo(), in_video->streamHeader()));
     mc::block block(0, 0, 16, 16);
     auto **frameSimpDiff = new TRIPLEYCbCr *[defHeight];
     for (size_t i = 0; i < in_video->height(); i++) {
@@ -149,7 +143,7 @@ void createDifferenceVideo(const char *filepath) {
     for (size_t i = 0; i < defHeight; i++) {
         delete[] frameSimpDiff[i];
     }
-    //print_bitmap_info(avi_out_file.video()->bmInfo);
+    //print_bitmap_info(avi_out_file.video()->m_bmInfo);
     avi_out_file.saveVideoStreamToBMP("cm_files");
     avi_out_file.saveAVIFile("diff.avi");
 }
@@ -181,9 +175,20 @@ void test1(const char *filepath1, const char *filepath2, const char *filepath3) 
     avi_maker3.saveAVIFile("reverse.avi");
 }
 
+void h264_test(const char *filepath) {
+    AVIMaker aviMaker(filepath);
+    uint8_t *bytes = 0;
+    size_t len = 0;
+    //print_bitmap_info(aviMaker.video()->bmInfo());
+    printf("w_blocks_count: %f\nh_blocks_count: %f\n", (float) aviMaker.video()->width() / 4,
+           (float) aviMaker.video()->height() / 4);
+    avi_to_h264(&bytes, len, aviMaker);
+}
+
 int main() {
     //test1("resources/lr1_1.AVI", "resources/lr1_2.AVI");
-    createDifferenceVideo("../resources/lr1_2.AVI");
+    //createDifferenceVideo("../resources/lr1_2.AVI");
+    h264_test("../resources/lr1_1.AVI");
     std::cout << "finish\n" << std::endl;
     return 0;
 }
