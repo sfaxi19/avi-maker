@@ -18,4 +18,6 @@ set(SOURCE_FILES
         src/bmp_lib/bmp_headers.hpp
         src/avi_lib/avi_headers.hpp
         src/bmp_lib/bmp_examples.cpp)
+
 add_executable(avi-maker ${SOURCE_FILES})
+add_library(avi-maker-lib STATIC ${SOURCE_FILES})
