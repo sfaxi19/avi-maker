@@ -63,6 +63,7 @@ public:
     }
 
     TRIPLERGB **getFrame(size_t id) {
+        if (id >= frames.size()) return nullptr;
         return frames[id];
     }
 

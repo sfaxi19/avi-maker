@@ -2,14 +2,25 @@
 // Created by sfaxi19 on 08.11.17.
 //
 
+#include <src/bmp_lib/bmp.h>
 #include "motion_compensation.h"
 #include "cmath"
 
-uint32_t mc::sumAbsDiff(TRIPLEYCbCr **base, TRIPLEYCbCr **target, mc::pos bBlockPos, mc::block tarBlock) {
+uint32_t mc::sumAbsDiffFrame(TRIPLERGB *base, TRIPLERGB *target, int height, int width) {
+    uint32_t sum = 0;
+    for (size_t i = 0; i < height * width; i++) {
+        TRIPLEYCbCr tarPix = RGB2YCbCrPix(target[i]);
+        TRIPLEYCbCr basePix = RGB2YCbCrPix(base[i]);
+        sum += abs(tarPix.Y - basePix.Y);
+    }
+    return sum;
+}
+
+uint32_t mc::sumAbsDiff(TRIPLEYCbCr **base, TRIPLEYCbCr **target, mc::pos basePos, mc::block tarBlock) {
     uint32_t sum = 0;
     for (size_t i = 0; i < tarBlock.height; i++) {
         for (size_t j = 0; j < tarBlock.width; j++) {
-            sum += abs(target[tarBlock.y + i][tarBlock.x + j].Y - base[bBlockPos.y + i][bBlockPos.x + j].Y);
+            sum += abs(target[tarBlock.y + i][tarBlock.x + j].Y - base[basePos.y + i][basePos.x + j].Y);
         }
     }
     return sum;

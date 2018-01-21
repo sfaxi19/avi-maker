@@ -105,7 +105,10 @@ namespace mc {
 
     vect logarithmicSearch(TRIPLEYCbCr **base, TRIPLEYCbCr **target, size_t h, size_t w, block block);
 
-    uint32_t sumAbsDiff(TRIPLEYCbCr **base, TRIPLEYCbCr **target, mc::pos bPos, mc::block tarBlock);
+    uint32_t sumAbsDiff(TRIPLEYCbCr **base, TRIPLEYCbCr **target, mc::pos basePos, mc::block tarBlock);
 
-}
+    uint32_t sumAbsDiffFrame(TRIPLERGB *base, TRIPLERGB *target, int height, int width);
+
+
+    }
 #endif //MULTITECH_MOTION_COMPENSATION_H

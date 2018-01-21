@@ -337,6 +337,20 @@ TRIPLERGB **Y2RGB(TRIPLEYCbCr **mrx, size_t h, size_t w) {
     return rgb;
 }
 
+TRIPLEYCbCr RGB2YCbCrPix(TRIPLERGB &pix) {
+    TRIPLEYCbCr pixYCbCr{};
+    double Y = round(0.299 * pix.red + 0.587 * pix.green + 0.114 * pix.blue);
+    double Cb = round(0.5643 * (pix.blue - Y) + 128);
+    double Cr = round(0.7132 * (pix.red - Y) + 128);
+    Y = (Y > 255) ? 255 : ((Y < 0) ? 0 : Y);
+    Cb = (Cb > 255) ? 255 : ((Cb < 0) ? 0 : Cb);
+    Cr = (Cr > 255) ? 255 : ((Cr < 0) ? 0 : Cr);
+    pixYCbCr.Y = (u_char) Y;
+    pixYCbCr.Cb = (u_char) Cb;
+    pixYCbCr.Cr = (u_char) Cr;
+    return pixYCbCr;
+}
+
 TRIPLEYCbCr **RGB2YCbCr(TRIPLERGB **mrxRGB, size_t h, size_t w) {
     TRIPLEYCbCr **mrxYCbCr = new TRIPLEYCbCr *[h];
     for (size_t i = 0; i < h; i++) {

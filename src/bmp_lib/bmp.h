@@ -100,6 +100,8 @@ TRIPLERGB **YCbCr2RGB(TRIPLERGB **mrxY, TRIPLERGB **mrxCb, TRIPLERGB **mrxCr, in
 
 TRIPLEYCbCr **RGB2YCbCr(TRIPLERGB **mrxRGB, size_t h, size_t w);
 
+TRIPLEYCbCr RGB2YCbCrPix(TRIPLERGB &pix);
+
 TRIPLERGB **Y2RGB(TRIPLEYCbCr **mrx, size_t h, size_t w);
 
 TRIPLERGB **decimationAndRecovering(TRIPLERGB **mrx, BITMAPFILEHEADER bmFile, BITMAPINFOHEADER bmInfo,
