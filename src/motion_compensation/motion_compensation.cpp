@@ -2,7 +2,7 @@
 // Created by sfaxi19 on 08.11.17.
 //
 
-#include <src/bmp_lib/bmp.h>
+#include "../bmp_lib/bmp.h"
 #include "motion_compensation.h"
 #include "cmath"
 

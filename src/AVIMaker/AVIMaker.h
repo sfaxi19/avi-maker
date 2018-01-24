@@ -27,7 +27,7 @@ public:
         int res = this->readAVIFile(filepath);
         if (res != 0) {
             perror(filepath);
-            exit(-2);
+//            exit(-2);
         }
     }
 
