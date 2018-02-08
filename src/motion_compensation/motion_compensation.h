@@ -37,8 +37,8 @@ namespace mc {
         }
     };
 
-    struct block : pos {
-        block(size_t x, size_t y, size_t height, size_t width) : pos(x, y), height(height), width(width) {};
+    struct block_info : pos {
+        block_info(size_t x, size_t y, size_t height, size_t width) : pos(x, y), height(height), width(width) {};
         size_t width = 0;
         size_t height = 0;
 
@@ -50,18 +50,18 @@ namespace mc {
         }
     };
 
-    struct logblock : block {
+    struct logblock : block_info {
         size_t n = 0;
         size_t height_max = 0;
         size_t width_max = 0;
 
-        logblock(block &b, size_t n, size_t height_max, size_t width_max) : block(b) {
+        logblock(block_info &b, size_t n, size_t height_max, size_t width_max) : block_info(b) {
             this->n = n;
             this->height_max = height_max - this->height;
             this->width_max = width_max - this->width;
         }
 
-        logblock(size_t x, size_t y, size_t height, size_t width) : block(x, y, height, width) {};
+        logblock(size_t x, size_t y, size_t height, size_t width) : block_info(x, y, height, width) {};
 
         void dev_n() { n /= 2; };
 
@@ -103,12 +103,13 @@ namespace mc {
         logblock new_pos(pos p) { return new_pos(p.x, p.y); }
     };
 
-    vect logarithmicSearch(TRIPLEYCbCr **base, TRIPLEYCbCr **target, size_t h, size_t w, block block);
+    vect logarithmicSearch(TRIPLEYCbCr **base, TRIPLEYCbCr **target, size_t h, size_t w, block_info block);
 
-    uint32_t sumAbsDiff(TRIPLEYCbCr **base, TRIPLEYCbCr **target, mc::pos basePos, mc::block tarBlock);
+    uint32_t sumAbsDiff(TRIPLEYCbCr **base, TRIPLEYCbCr **target, mc::pos basePos, mc::block_info tarBlock);
 
     uint32_t sumAbsDiffFrame(TRIPLERGB *base, TRIPLERGB *target, int height, int width);
 
+    void subtract_block(TRIPLEYCbCr **base, TRIPLEYCbCr **target, TRIPLEYCbCr **out, mc::block_info block, mc::vect v);
 
-    }
+}
 #endif //MULTITECH_MOTION_COMPENSATION_H

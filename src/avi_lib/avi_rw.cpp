@@ -216,7 +216,7 @@ bool read_data(FILE *file, uint32_t node, uint32_t &bytes, AVIMaker *aviMaker) {
             //printf("audio stream\n");
             AudioStream *aStream = aviMaker->getAudioStreamByID(chunk_data_id);
             if (aStream == nullptr) return false;
-            uint8_t *sample = (uint8_t *) malloc(chunk.ckSize);
+            uint8_t *sample = new uint8_t[chunk.ckSize];
             fread(sample, chunk.ckSize, 1, file);
             bytes -= chunk.ckSize;
             aStream->samples.push_back(sample);
@@ -226,12 +226,14 @@ bool read_data(FILE *file, uint32_t node, uint32_t &bytes, AVIMaker *aviMaker) {
             //printf("video stream\n");
             VideoStream *vStream = aviMaker->getVideoStreamByID(chunk_data_id);
             if (vStream == nullptr) return false;
-            TRIPLERGB **rgb = (TRIPLERGB **) malloc(chunk.ckSize);
-            //TRACE printf("point: 0x%x\n", rgb);
             BITMAPINFOHEADER bmInfo = aviMaker->videoStreams[chunk_data_id]->bmInfo();
+            TRIPLERGB **rgb = (TRIPLERGB **) new uint8_t *[bmInfo.biHeight];
+            uint8_t *buffer = new uint8_t[chunk.ckSize];
+            //TRACE printf("point: 0x%x\n", rgb);
+            fread(buffer, chunk.ckSize, 1, file);
             for (size_t i = 0; i < bmInfo.biHeight; i++) {
-                rgb[i] = new TRIPLERGB[bmInfo.biWidth];
-                fread(&rgb[i][0], (sizeof(TRIPLERGB) * bmInfo.biWidth), 1, file);
+                rgb[i] = (TRIPLERGB *) (buffer + i * (sizeof(TRIPLERGB) * bmInfo.biWidth));
+                //fread(&rgb[i][0], (sizeof(TRIPLERGB) * bmInfo.biWidth), 1, file);
                 //fread(&dummy[0], dummy_count, 1, file);
             }
             bytes -= chunk.ckSize;

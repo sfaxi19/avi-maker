@@ -6,6 +6,17 @@
 #include "motion_compensation.h"
 #include "cmath"
 
+void mc::subtract_block(TRIPLEYCbCr **base, TRIPLEYCbCr **target, TRIPLEYCbCr **out, mc::block_info block, mc::vect v) {
+    for (int i = 0; i < block.height; i++) {
+        for (int j = 0; j < block.width; j++) {
+            out[block.y + i][block.x + j].Y = clip(
+                    target[block.y + i][block.x + j].Y - base[block.y + v.y + i][block.x + v.x + j].Y,
+                    0,
+                    255);
+        }
+    }
+}
+
 uint32_t mc::sumAbsDiffFrame(TRIPLERGB *base, TRIPLERGB *target, int height, int width) {
     uint32_t sum = 0;
     for (size_t i = 0; i < height * width; i++) {
@@ -16,7 +27,7 @@ uint32_t mc::sumAbsDiffFrame(TRIPLERGB *base, TRIPLERGB *target, int height, int
     return sum;
 }
 
-uint32_t mc::sumAbsDiff(TRIPLEYCbCr **base, TRIPLEYCbCr **target, mc::pos basePos, mc::block tarBlock) {
+uint32_t mc::sumAbsDiff(TRIPLEYCbCr **base, TRIPLEYCbCr **target, mc::pos basePos, mc::block_info tarBlock) {
     uint32_t sum = 0;
     for (size_t i = 0; i < tarBlock.height; i++) {
         for (size_t j = 0; j < tarBlock.width; j++) {
@@ -26,7 +37,7 @@ uint32_t mc::sumAbsDiff(TRIPLEYCbCr **base, TRIPLEYCbCr **target, mc::pos basePo
     return sum;
 }
 
-uint32_t errorEnergy(TRIPLEYCbCr **base, TRIPLEYCbCr **target, mc::block bBlock, mc::block tarBlock) {
+uint32_t errorEnergy(TRIPLEYCbCr **base, TRIPLEYCbCr **target, mc::block_info bBlock, mc::block_info tarBlock) {
     uint32_t sum = 0;
     for (size_t i = 0; i < tarBlock.height; i++) {
         for (size_t j = 0; j < tarBlock.width; j++) {
@@ -48,7 +59,8 @@ int findMinFromArray(const uint32_t array[5]) {
     return min_index;
 }
 
-mc::vect mc::logarithmicSearch(TRIPLEYCbCr **bFrame, TRIPLEYCbCr **tarFrame, size_t h, size_t w, mc::block tarBlock) {
+mc::vect
+mc::logarithmicSearch(TRIPLEYCbCr **bFrame, TRIPLEYCbCr **tarFrame, size_t h, size_t w, mc::block_info tarBlock) {
     mc::logblock bBlock(tarBlock, 5, h, w);
 //    std::cout << "=====================================\n";
 //    std::cout << "=====================================\n";

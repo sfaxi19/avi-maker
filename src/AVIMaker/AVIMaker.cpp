@@ -136,16 +136,18 @@ AVIMaker::~AVIMaker() {
         int height = videoStreams[video_id]->bmInfo().biHeight;
         for (size_t frame_id = 0; frame_id < videoStreams[video_id]->frames.size(); frame_id++) {
             TRIPLERGB **tmp = videoStreams[video_id]->frames[frame_id];
-            for (int i = 0; i < height; i++) {
+            /*for (int i = 0; i < height; i++) {
                 delete[] tmp[i];
-            }
+            }*/
+            if(tmp != nullptr)delete[] tmp[0];
             delete[] tmp;
         }
     }
 
     for (size_t audio_id = 0; audio_id < audioStreams.size(); audio_id++) {
         for (size_t sample_id = 0; sample_id < audioStreams[audio_id]->samples.size(); sample_id++) {
-            delete[] audioStreams[audio_id]->samples[sample_id];
+            if (audioStreams[audio_id]->samples[sample_id] != nullptr)
+                delete[] audioStreams[audio_id]->samples[sample_id];
         }
         delete audioStreams[audio_id]->streamHeader;
         delete audioStreams[audio_id]->wave;

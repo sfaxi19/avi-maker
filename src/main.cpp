@@ -53,17 +53,6 @@ void correletion_func(const char *filepath1, const char *filepath2, int componen
     fclose(file_graph);
 }
 
-
-
-void subtract_block(TRIPLEYCbCr **base, TRIPLEYCbCr **target, TRIPLEYCbCr **out, mc::block block, mc::vect v) {
-    for (int i = 0; i < block.height; i++) {
-        for (int j = 0; j < block.width; j++) {
-            out[block.y + i][block.x + j].Y = clip(target[block.y + i][block.x + j].Y -
-                                                   base[block.y + v.y + i][block.x + v.x + j].Y + 128, 0, 255);
-        }
-    }
-}
-
 void createDifferenceVideo(const char *filepath) {
     AVIMaker avi_in_file(filepath);
     VideoStream *in_video = avi_in_file.video();
@@ -71,7 +60,7 @@ void createDifferenceVideo(const char *filepath) {
     size_t defWidth = in_video->width();
     AVIMaker avi_out_file(avi_in_file.aviHeader,
                           new VideoStream(in_video->bmInfo(), in_video->streamHeader()));
-    mc::block block(0, 0, 16, 16);
+    mc::block_info block(0, 0, 16, 16);
     auto **frameSimpDiff = new TRIPLEYCbCr *[defHeight];
     for (size_t i = 0; i < in_video->height(); i++) {
         frameSimpDiff[i] = new TRIPLEYCbCr[defWidth];
@@ -94,7 +83,7 @@ void createDifferenceVideo(const char *filepath) {
         if (height_end_blocks == 0) height_end_blocks = block.height;
         for (size_t i = 0; i < n_blocks_in_height; i++) {
             for (size_t j = 0; j < n_blocks_in_width; j++) {
-                mc::block cur_block = block;
+                mc::block_info cur_block = block;
                 cur_block.x = j * block.width;
                 cur_block.y = i * block.height;
                 if (i == n_blocks_in_height - 1) cur_block.height = height_end_blocks;
@@ -103,7 +92,7 @@ void createDifferenceVideo(const char *filepath) {
                 subtract_block(frameBase, frameTarget, frameOut, cur_block, v_res);
             }
         }
-        subtract_block(frameBase, frameTarget, frameSimpDiff, mc::block(0, 0, defHeight, defWidth), mc::vect(0, 0));
+        subtract_block(frameBase, frameTarget, frameSimpDiff, mc::block_info(0, 0, defHeight, defWidth), mc::vect(0, 0));
 
         int *freq;
         freq = getHistFreqFromTriple((TRIPLERGB **) frameOut, defHeight, defWidth, COMPONENT_Y,
