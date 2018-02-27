@@ -132,6 +132,19 @@ u_char getComponent(TRIPLEBYTES **mrx, int i, int j, int component) {
     return 0;
 }
 
+void setComponent(TRIPLEBYTES **mrx, int i, int j, uint8_t value, int component) {
+    switch (component) {
+        case COMPONENT_A:
+            mrx[i][j].A = value;
+        case COMPONENT_B:
+            mrx[i][j].B = value;
+        case COMPONENT_C:
+            mrx[i][j].C = value;
+        default:
+            break;
+    }
+}
+
 double **getChartsForComponent(TRIPLERGB **mrx, int h, int w, int component) {
     double **graph = new double *[5];
     const int chart_3d_stop_width = w / 4;

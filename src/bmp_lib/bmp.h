@@ -63,6 +63,9 @@ void saveHistCSVFile(int *mrx, const int start, const int width, const char *fil
 
 u_char getComponent(TRIPLEBYTES **mrx, int i, int j, int component);
 
+void setComponent(TRIPLEBYTES **mrx, int i, int j, uint8_t value, int component);
+
+
 //Mathematics functions
 double getCorrelationCoefficient(TRIPLERGB **mrx, TRIPLERGB **mrx2, int h, int w, int componentA, int componentB,
                                  double ExpA, double ExpB);

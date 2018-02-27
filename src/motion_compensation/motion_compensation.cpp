@@ -10,7 +10,18 @@ void mc::subtract_block(TRIPLEYCbCr **base, TRIPLEYCbCr **target, TRIPLEYCbCr **
     for (int i = 0; i < block.height; i++) {
         for (int j = 0; j < block.width; j++) {
             out[block.y + i][block.x + j].Y = clip(
-                    target[block.y + i][block.x + j].Y - base[block.y + v.y + i][block.x + v.x + j].Y,
+                    128 + target[block.y + i][block.x + j].Y - base[block.y + v.y + i][block.x + v.x + j].Y,
+                    0,
+                    255);
+        }
+    }
+}
+
+void mc::addition_block(TRIPLEYCbCr **base, TRIPLEYCbCr **target, TRIPLEYCbCr **out, mc::block_info block, mc::vect v) {
+    for (int i = 0; i < block.height; i++) {
+        for (int j = 0; j < block.width; j++) {
+            out[block.y + i][block.x + j].Y = clip(
+                    target[block.y + i][block.x + j].Y + base[block.y + v.y + i][block.x + v.x + j].Y - 128,
                     0,
                     255);
         }
@@ -61,7 +72,7 @@ int findMinFromArray(const uint32_t array[5]) {
 
 mc::vect
 mc::logarithmicSearch(TRIPLEYCbCr **bFrame, TRIPLEYCbCr **tarFrame, size_t h, size_t w, mc::block_info tarBlock) {
-    mc::logblock bBlock(tarBlock, 5, h, w);
+    mc::logblock bBlock(tarBlock, 8, h, w);
 //    std::cout << "=====================================\n";
 //    std::cout << "=====================================\n";
 //    std::cout << "=====================================\n";

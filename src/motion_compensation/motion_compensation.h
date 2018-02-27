@@ -111,5 +111,6 @@ namespace mc {
 
     void subtract_block(TRIPLEYCbCr **base, TRIPLEYCbCr **target, TRIPLEYCbCr **out, mc::block_info block, mc::vect v);
 
+    void addition_block(TRIPLEYCbCr **base, TRIPLEYCbCr **target, TRIPLEYCbCr **out, mc::block_info block, mc::vect v);
 }
 #endif //MULTITECH_MOTION_COMPENSATION_H
