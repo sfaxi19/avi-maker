@@ -67,6 +67,20 @@ public:
         return frames[id];
     }
 
+    void releaseFrame(size_t id) {
+        if (id >= frames.size()) return;
+        TRIPLERGB **frame = frames.at(id);
+        if (frame != nullptr) delete[] frame[0];
+        delete[] frame;
+        frames.erase(frames.begin() + id);
+    }
+
+    void releaseAllFrames(){
+        for (size_t frame_id = 0; frame_id < frames.size(); frame_id++) {
+            releaseFrame(frame_id);
+        }
+    }
+
     size_t height() { return m_bmInfo.biHeight; };
 
     size_t width() { return m_bmInfo.biWidth; };
